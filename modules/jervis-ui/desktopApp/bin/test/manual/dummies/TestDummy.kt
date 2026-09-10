@@ -1,0 +1,73 @@
+package manual.dummies
+
+import com.jervisffb.engine.GameEngineController
+import com.jervisffb.engine.GameSettings
+import com.jervisffb.engine.bb2020.StandardBB2020Rules
+import com.jervisffb.test.bb2020.createDefaultGameStateBB2020
+import com.jervisffb.ui.game.UiGameClientType
+import com.jervisffb.ui.game.UiGameController
+import com.jervisffb.ui.game.state.LocalActionProvider
+import com.jervisffb.ui.game.state.ManualActionProvider
+import com.jervisffb.ui.game.viewmodel.MenuViewModel
+import com.jervisffb.ui.game.viewmodel.PitchViewModel
+import com.jervisffb.ui.game.viewmodel.SidebarViewModel
+import com.jervisffb.ui.menu.GameScreenModel
+import com.jervisffb.ui.menu.LocalPitchDataWrapper
+import com.jervisffb.ui.menu.Manual
+import com.jervisffb.ui.menu.TeamActionMode
+
+object TestDummy {
+    val menuViewModel = MenuViewModel()
+    val state = createDefaultGameStateBB2020(StandardBB2020Rules())
+    val controller = GameEngineController(state)
+    val settings = GameSettings(StandardBB2020Rules())
+    val homeActionProvider = ManualActionProvider(controller, menuViewModel,TeamActionMode.HOME_TEAM, settings)
+    val awayActionProvider = ManualActionProvider(controller, menuViewModel,  TeamActionMode.AWAY_TEAM, settings)
+    val actionProvider = LocalActionProvider(
+        controller,
+        settings,
+        homeActionProvider,
+        awayActionProvider
+    )
+
+    val gameModel = GameScreenModel(
+        UiGameClientType.HOTSEAT,
+        TeamActionMode.ALL_TEAMS,
+        controller,
+        state.homeTeam,
+        state.awayTeam,
+        actionProvider,
+        Manual(TeamActionMode.ALL_TEAMS),
+        menuViewModel,
+    )
+    val uiController = UiGameController(
+        UiGameClientType.HOTSEAT,
+        TeamActionMode.ALL_TEAMS,
+        controller,
+        actionProvider,
+        menuViewModel,
+        emptyList()
+    )
+    val dummyPitchWrapper = LocalPitchDataWrapper(uiController)
+    val pitchViewModel by lazy { PitchViewModel(gameModel, uiController, gameModel.hoverPlayerFlow) }
+    val leftSidebar by lazy {
+        SidebarViewModel(
+            gameModel,
+            menuViewModel,
+            uiController,
+            dummyPitchWrapper,
+            state.homeTeam,
+            gameModel.hoverPlayerFlow,
+        )
+    }
+    val rightSidebar by lazy {
+        SidebarViewModel(
+            gameModel,
+            menuViewModel,
+            uiController,
+            dummyPitchWrapper,
+            state.awayTeam,
+            gameModel.hoverPlayerFlow,
+        )
+    }
+}

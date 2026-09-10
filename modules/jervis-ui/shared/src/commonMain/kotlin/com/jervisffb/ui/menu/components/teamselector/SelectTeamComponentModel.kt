@@ -1,14 +1,27 @@
 package com.jervisffb.ui.menu.components.teamselector
 
 import androidx.compose.runtime.mutableStateOf
+import com.jervisffb.engine.ext.playerId
+import com.jervisffb.engine.ext.playerNo
+import com.jervisffb.engine.teamBuilder
 import com.jervisffb.engine.model.Coach
 import com.jervisffb.engine.model.CoachId
+import com.jervisffb.engine.model.PositionId
 import com.jervisffb.engine.model.Team
 import com.jervisffb.engine.model.TeamId
 import com.jervisffb.engine.rules.Rules
+import com.jervisffb.engine.rules.builder.GameType
+import com.jervisffb.engine.rules.builder.GameVersion
+import com.jervisffb.engine.rules.common.roster.Roster
+import com.jervisffb.engine.serialization.FILE_FORMAT_VERSION
+import com.jervisffb.engine.serialization.JervisMetaData
 import com.jervisffb.engine.serialization.JervisTeamFile
 import com.jervisffb.engine.serialization.SerializedTeam
 import com.jervisffb.fumbbl.web.FumbblApi
+import com.jervisffb.resources.bb2020.StandaloneBB7Teams2020
+import com.jervisffb.resources.bb2020.StandaloneStandardTeams2020
+import com.jervisffb.resources.bb2025.StandaloneBB7Teams2025
+import com.jervisffb.resources.bb2025.StandaloneStandardTeams2025
 import com.jervisffb.tourplay.TourPlayApi
 import com.jervisffb.ui.CacheManager
 import com.jervisffb.ui.ICON_FACTORY
@@ -20,6 +33,7 @@ import com.jervisffb.ui.menu.components.TeamInfo
 import com.jervisffb.utils.jervisLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 /**
  * View controller for the team selector component. This component is responsible for all the UI control needed
@@ -50,6 +64,7 @@ class SelectTeamComponentModel(
     var showImportTourPlayTeamDialog = mutableStateOf(false)
     var showImportFumbblTeamDialog = mutableStateOf(false)
     var showLoadTeamFromFileDialog = mutableStateOf(false)
+    var showCreateTeamDialog = mutableStateOf(false)
 
     fun initialize(rules: Rules) {
         this.rules = rules
@@ -199,5 +214,80 @@ class SelectTeamComponentModel(
 
     fun addNewTeam(teamInfo: TeamInfo) {
         availableTeams.value = (availableTeams.value.filter { it.teamId != teamInfo.teamId } + teamInfo).sortedBy { it.teamName }
+    }
+
+    fun getAvailableRosters(): List<Roster> {
+        val currentRules = rules ?: return emptyList()
+        val rosterOptions = when (currentRules.baseVersion) {
+            GameVersion.BB2020 -> when (currentRules.gameType) {
+                GameType.STANDARD -> StandaloneStandardTeams2020.defaultTeams.values.map { it.roster }
+                GameType.BB7 -> StandaloneBB7Teams2020.defaultTeams.values.map { it.roster }
+                else -> emptyList()
+            }
+            GameVersion.BB2025 -> when (currentRules.gameType) {
+                GameType.STANDARD -> StandaloneStandardTeams2025.defaultTeams.values.map { it.roster }
+                GameType.BB7 -> StandaloneBB7Teams2025.defaultTeams.values.map { it.roster }
+                else -> emptyList()
+            }
+            else -> emptyList()
+        }
+        return rosterOptions.distinctBy { it.id }
+            .sortedBy { it.name }
+    }
+
+    suspend fun createTeamFromRoster(
+        roster: Roster,
+        teamName: String,
+        selectedPlayersByPosition: Map<PositionId, Int> = emptyMap(),
+        rerolls: Int = roster.numberOfRerolls,
+    ): TeamInfo {
+        val currentRules = rules ?: error("Rules not initialized")
+        val normalizedName = teamName.trim()
+        require(normalizedName.isNotBlank()) { "Team name is required" }
+
+        val playerCounts: Map<PositionId, Int> = if (selectedPlayersByPosition.isEmpty()) {
+            val counts = mutableMapOf<PositionId, Int>()
+            for (position in roster.positions) {
+                counts[position.id] = position.quantity
+            }
+            counts
+        } else {
+            val counts = mutableMapOf<PositionId, Int>()
+            for (position in roster.positions) {
+                counts[position.id] = selectedPlayersByPosition[position.id]?.coerceIn(0, position.quantity) ?: 0
+            }
+            counts
+        }
+        val selectedRerolls = rerolls.coerceIn(0, roster.numberOfRerolls)
+
+        val team = teamBuilder(currentRules, roster) {
+            id = TeamId("custom-team-${Random.nextLong()}")
+            name = normalizedName
+            this.rerolls = selectedRerolls
+
+            var nextNumber = 1
+            for (position in roster.positions) {
+                val count = playerCounts[position.id] ?: 0
+                repeat(count) { index ->
+                    addPlayer(
+                        id = "custom-${position.id.value}-${index + 1}".playerId,
+                        name = "${position.titleSingular} ${index + 1}",
+                        number = nextNumber.playerNo,
+                        type = position,
+                    )
+                    nextNumber += 1
+                }
+            }
+        }
+
+        val teamFile = JervisTeamFile(
+            metadata = JervisMetaData(FILE_FORMAT_VERSION),
+            team = SerializedTeam.serialize(team),
+            history = null,
+        )
+        CacheManager.saveTeam(teamFile)
+        val teamInfo = getTeamInfo(teamFile, team)
+        addNewTeam(teamInfo)
+        return teamInfo
     }
 }

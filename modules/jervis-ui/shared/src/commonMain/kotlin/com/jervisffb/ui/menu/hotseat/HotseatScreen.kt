@@ -19,6 +19,7 @@ import com.jervisffb.ui.game.view.SidebarMenu
 import com.jervisffb.ui.game.viewmodel.MenuViewModel
 import com.jervisffb.ui.menu.JervisScreen
 import com.jervisffb.ui.menu.MenuScreenWithSidebarAndTitle
+import com.jervisffb.ui.menu.components.CreateTeamDialog
 import com.jervisffb.ui.menu.components.ImportTeamFromFumbblDialog
 import com.jervisffb.ui.menu.components.ImportTeamFromTourPlayDialog
 import com.jervisffb.ui.menu.components.LoadTeamFromFileDialog
@@ -63,6 +64,12 @@ class HotseatScreen(private val menuViewModel: MenuViewModel, private val viewMo
             LoadTeamFromFileDialog(
                 viewModel.currentTeamSelectorViewModel.value!!,
                 onDismissRequest = { viewModel.currentTeamSelectorViewModel.value?.showLoadTeamFromFileDialog?.value = false }
+            )
+        }
+        if (viewModel.currentTeamSelectorViewModel.value?.showCreateTeamDialog?.value == true) {
+            CreateTeamDialog(
+                viewModel.currentTeamSelectorViewModel.value!!,
+                onDismissRequest = { viewModel.currentTeamSelectorViewModel.value?.showCreateTeamDialog?.value = false }
             )
         }
     }

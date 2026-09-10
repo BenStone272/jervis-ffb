@@ -36,6 +36,7 @@ import com.jervisffb.ui.game.view.utils.TitleBorder
 import com.jervisffb.ui.game.viewmodel.MenuViewModel
 import com.jervisffb.ui.menu.JervisScreen
 import com.jervisffb.ui.menu.MenuScreenWithSidebarAndTitle
+import com.jervisffb.ui.menu.components.CreateTeamDialog
 import com.jervisffb.ui.menu.components.ImportTeamFromFumbblDialog
 import com.jervisffb.ui.menu.components.ImportTeamFromTourPlayDialog
 import com.jervisffb.ui.menu.components.LoadTeamFromFileDialog
@@ -91,6 +92,12 @@ class P2PHostScreen(private val menuViewModel: MenuViewModel, private val viewMo
             LoadTeamFromFileDialog(
                 viewModel.selectTeamModel.componentModel,
                 onDismissRequest = { viewModel.selectTeamModel.componentModel.showLoadTeamFromFileDialog.value = false }
+            )
+        }
+        if (viewModel.selectTeamModel.componentModel.showCreateTeamDialog.value) {
+            CreateTeamDialog(
+                viewModel.selectTeamModel.componentModel,
+                onDismissRequest = { viewModel.selectTeamModel.componentModel.showCreateTeamDialog.value = false }
             )
         }
     }

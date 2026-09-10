@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jervisffb.ui.game.view.utils.JervisButton
+import com.jervisffb.ui.menu.components.CreateTeamDialog
 import com.jervisffb.ui.menu.components.TeamInfo
 import com.jervisffb.ui.menu.components.teamselector.SelectTeamComponent
 import com.jervisffb.ui.menu.components.teamselector.SelectTeamComponentModel
@@ -65,6 +66,12 @@ fun SelectP2PTeamScreen(
             JervisButton(text = "Import from TourPlay", onClick = {
                 with(viewModel) {
                     showImportTourPlayTeamDialog.value = !showImportTourPlayTeamDialog.value
+                }
+            })
+            Spacer(modifier = Modifier.width(16.dp))
+            JervisButton(text = "Create Team", onClick = {
+                with(viewModel) {
+                    showCreateTeamDialog.value = !showCreateTeamDialog.value
                 }
             })
             Spacer(modifier = Modifier.weight(1f))

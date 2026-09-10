@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.jervisffb.engine.model.CoachType
 import com.jervisffb.ui.game.view.JervisTheme
 import com.jervisffb.ui.game.view.utils.JervisButton
+import com.jervisffb.ui.menu.components.CreateTeamDialog
 import com.jervisffb.ui.menu.components.coach.CoachSetupComponent
 import com.jervisffb.ui.menu.components.teamselector.SelectTeamComponent
 
@@ -82,6 +83,15 @@ fun SelectHotseatTeamScreen(
                 }
                 with(viewModel.teamSelectorModel) {
                     showImportTourPlayTeamDialog.value = !showImportTourPlayTeamDialog.value
+                }
+            })
+            Spacer(modifier = Modifier.width(16.dp))
+            JervisButton(text = "Create Team", onClick = {
+                with(viewModel.parentModel) {
+                    currentTeamSelectorViewModel.value = viewModel.teamSelectorModel
+                }
+                with(viewModel.teamSelectorModel) {
+                    showCreateTeamDialog.value = !showCreateTeamDialog.value
                 }
             })
             Spacer(modifier = Modifier.weight(1f))
