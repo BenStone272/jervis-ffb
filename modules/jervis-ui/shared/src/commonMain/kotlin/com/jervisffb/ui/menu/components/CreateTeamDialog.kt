@@ -44,9 +44,9 @@ fun CreateTeamDialog(
     var selectedRoster by remember(availableRosters) {
         mutableStateOf(availableRosters.firstOrNull())
     }
-    var rerolls by remember(selectedRoster) { mutableStateOf(selectedRoster?.numberOfRerolls ?: 0) }
+    var rerolls by remember(selectedRoster) { mutableStateOf(0) }
     var selectedCounts by remember(selectedRoster) {
-        mutableStateOf<Map<PositionId, Int>>(selectedRoster?.positions?.associate { it.id to it.quantity } ?: emptyMap())
+        mutableStateOf<Map<PositionId, Int>>(selectedRoster?.positions?.associate { it.id to 0 } ?: emptyMap())
     }
     var isCreating by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -60,8 +60,8 @@ fun CreateTeamDialog(
 
     LaunchedEffect(selectedRoster) {
         if (selectedRoster != null) {
-            rerolls = selectedRoster!!.numberOfRerolls
-            selectedCounts = selectedRoster!!.positions.associate { it.id to it.quantity }.toMap()
+            rerolls = 0
+            selectedCounts = selectedRoster!!.positions.associate { it.id to 0 }.toMap()
         }
     }
 

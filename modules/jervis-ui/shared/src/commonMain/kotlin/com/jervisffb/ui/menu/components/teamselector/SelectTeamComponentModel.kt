@@ -220,13 +220,13 @@ class SelectTeamComponentModel(
         val currentRules = rules ?: return emptyList()
         val rosterOptions = when (currentRules.baseVersion) {
             GameVersion.BB2020 -> when (currentRules.gameType) {
-                GameType.STANDARD -> StandaloneStandardTeams2020.defaultTeams.values.map { it.roster }
-                GameType.BB7 -> StandaloneBB7Teams2020.defaultTeams.values.map { it.roster }
+                GameType.STANDARD -> com.jervisffb.resources.bb2020.StandaloneRosters2020.defaultRosters.values.map { it.roster }
+                GameType.BB7 -> com.jervisffb.resources.bb2020.StandaloneRosters2020.defaultRosters.values.map { it.roster }
                 else -> emptyList()
             }
             GameVersion.BB2025 -> when (currentRules.gameType) {
-                GameType.STANDARD -> StandaloneStandardTeams2025.defaultTeams.values.map { it.roster }
-                GameType.BB7 -> StandaloneBB7Teams2025.defaultTeams.values.map { it.roster }
+                GameType.STANDARD -> com.jervisffb.resources.bb2025.StandaloneRosters2025.defaultRosters.values.map { it.roster }
+                GameType.BB7 -> com.jervisffb.resources.bb2025.StandaloneRosters2025.defaultRosters.values.map { it.roster }
                 else -> emptyList()
             }
             else -> emptyList()
@@ -248,7 +248,7 @@ class SelectTeamComponentModel(
         val playerCounts: Map<PositionId, Int> = if (selectedPlayersByPosition.isEmpty()) {
             val counts = mutableMapOf<PositionId, Int>()
             for (position in roster.positions) {
-                counts[position.id] = position.quantity
+                counts[position.id] = 0
             }
             counts
         } else {
